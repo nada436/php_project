@@ -10,6 +10,7 @@
 
     <?php
     include 'db.php';
+    include 'auth.php';
 
     $user = [
         'fname' => '',
@@ -18,6 +19,7 @@
         'gender' => '',
         'username' => '',
         'password' => '',
+        'img'=>'',
         'department' => 'open source'
     ];
     $skills = [];
@@ -32,6 +34,14 @@
             $skills[] = $row['skill'];
         }
     }
+session_start();
+
+if (isset($_GET['error'])) {
+    $errors = $_SESSION['errors'] ?? [];
+    $user = $_SESSION['userinfo'];
+    unset($_SESSION['errors']);
+    $skills=$user['skills'];
+}
     ?>
 
     <div class="w-full max-w-xl">
@@ -46,23 +56,38 @@
 
             <h2 class="text-2xl font-bold text-gray-700 mb-6"><?= $id ? 'Edit Employee' : 'Register Employee' ?></h2>
 
-            <form action="save.php" method="post" id="myForm" class="space-y-5">
+            <form action="save.php" method="post"  enctype="multipart/form-data" id="myForm" class="space-y-5" >
 
                 <input  type="hidden" name="id" value="<?= $id ?>" >
 
                 <div>
                     <label class="block text-sm font-medium text-gray-600 mb-1">First Name</label>
-                    <input class="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent text-sm transition" name="fname" value="<?= $user['fname'] ?>" placeholder="Enter first name" required>
+                    <input class="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent text-sm transition" name="fname" value="<?= $user['fname'] ?>" placeholder="Enter first name">
+                    <?php if (!empty($errors['fname'])): ?>
+                    <p class="text-red-500 text-xs mt-1">
+                    <?= $errors['fname'] ?>
+                     </p>
+                     <?php endif; ?>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-600 mb-1">Last Name</label>
-                    <input class="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent text-sm transition" name="lname" value="<?= $user['lname'] ?>" placeholder="Enter last name" required>
+                    <input class="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent text-sm transition" name="lname" value="<?= $user['lname'] ?>" placeholder="Enter last name">
+                    <?php if (!empty($errors['lname'])): ?>
+                    <p class="text-red-500 text-xs mt-1">
+                    <?= $errors['lname'] ?>
+                     </p>
+                     <?php endif; ?>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-600 mb-1">Address</label>
-                    <input class="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent text-sm transition" name="address" value="<?= $user['address'] ?>" placeholder="Enter address" required>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">email Address</label>
+                    <input class="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent text-sm transition" name="address" value="<?= $user['address'] ?>" placeholder="Enter email address">
+                    <?php if (!empty($errors['address'])): ?>
+                    <p class="text-red-500 text-xs mt-1">
+                    <?= $errors['address'] ?>
+                     </p>
+                     <?php endif; ?>
                 </div>
 
                 <div>
@@ -76,6 +101,11 @@
                             <input type="radio" name="gender" value="female" id="female" <?= $user['gender'] == 'female' ? 'checked' : '' ?> class="accent-purple-500">
                             Female
                         </label>
+                        <?php if (!empty($errors['gender'])): ?>
+                    <p class="text-red-500 text-xs mt-1">
+                    <?= $errors['gender'] ?>
+                     </p>
+                     <?php endif; ?>
                     </div>
                 </div>
 
@@ -103,18 +133,38 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-600 mb-1">Username</label>
-                    <input class="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent text-sm transition" name="username" value="<?= $user['username'] ?>" placeholder="Enter username" required>
+                    <input class="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent text-sm transition" name="username" value="<?= $user['username'] ?>" placeholder="Enter username">
+                    <?php if (!empty($errors['username'])): ?>
+                    <p class="text-red-500 text-xs mt-1">
+                    <?= $errors['username'] ?>
+                     </p>
+                     <?php endif; ?>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-600 mb-1">Password</label>
-                    <input type="password" class="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent text-sm transition" name="password" value="<?= $user['password'] ?>" placeholder="Enter password" required>
+                    <input type="password" class="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent text-sm transition" name="password" value="<?= $user['password'] ?>" placeholder="Enter password">
+                    <?php if (!empty($errors['password'])): ?>
+                    <p class="text-red-500 text-xs mt-1">
+                    <?= $errors['password'] ?>
+                     </p>
+                     <?php endif; ?>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-600 mb-1">Department</label>
                     <input class="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-100 text-gray-400 text-sm cursor-not-allowed" name="department" value="open source" readonly>
                 </div>
+                <div>
+                <?php if ($id && !empty($user['img'])): ?>
+                        <div class="mb-3 flex items-center gap-3">
+                            <img src="./img/<?= htmlspecialchars($user['img']) ?>" alt="current image" class="w-16 h-16 rounded-xl object-cover border border-gray-200">
+                            <span class="text-xs text-gray-400">Current image — upload a new one to replace it</span>
+                        </div>
+                    <?php endif; ?>
+                     <input type="file" name="img" class="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-purple-100 file:text-purple-600 hover:file:bg-purple-200 transition">
+                </div>
+
 
                 <div class="bg-purple-50 rounded-xl px-4 py-3 text-sm text-gray-500">
                     code: <span class="font-semibold text-purple-600">sh68sa</span>

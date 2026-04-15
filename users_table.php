@@ -8,15 +8,31 @@
 </head>
 <body class="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 p-8">
 
-    <div class="max-w-7xl mx-auto">
+   <div class="max-w-7xl mx-auto">
 
-        <div class="flex items-center justify-between mb-6">
-            <h1 class="text-2xl font-bold text-gray-700">Employees</h1>
-            <a href="register.php" class="px-5 py-2 bg-gradient-to-r from-purple-500 to-pink-400 text-white text-sm font-semibold rounded-xl shadow-md hover:opacity-90 transition">
+    <div class="flex items-center justify-between mb-6">
+
+        <h1 class="text-2xl font-bold text-gray-700">
+            Employees
+        </h1>
+
+        <div class="flex items-center gap-3">
+
+            <a href="register.php"
+               class="px-5 py-2 bg-gradient-to-r from-purple-500 to-pink-400 text-white text-sm font-semibold rounded-xl shadow-md hover:opacity-90 transition">
                 + Create New User
             </a>
+
+            <a href="logout.php"
+               class="px-5 py-2 bg-red-500 text-white text-sm font-semibold rounded-xl shadow-md hover:bg-red-600 transition">
+                Logout
+            </a>
+
         </div>
 
+    </div>
+
+</div>
         <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl shadow-purple-100 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left">
@@ -30,14 +46,17 @@
                             <th class="px-5 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Username</th>
                             <th class="px-5 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Password</th>
                             <th class="px-5 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Department</th>
+                             <th class="px-5 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">img</th>
                             <th class="px-5 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Skills</th>
                             <th class="px-5 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider"></th>
-                            <th class="px-5 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider"></th>
+                             
+                            
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
                         <?php
                         include 'db.php';
+                        include 'auth.php';
 
                         $sql = "SELECT * FROM users";
                         $result = $conn->query($sql);
@@ -46,9 +65,22 @@
                         foreach ($users as $user) {
                             echo "<tr class='hover:bg-purple-50/50 transition-colors'>";
 
-                            foreach ($user as $value) {
-                                echo "<td class='px-5 py-4 text-gray-600'>" . (!empty($value) ? htmlspecialchars($value) : "<span class='text-gray-300'>--</span>") . "</td>";
-                            }
+                        foreach ($user as $key => $value) {
+
+                          if ($key == 'img') {
+                          echo "<td class='px-5 py-4'>
+                          <img src='./img/" . htmlspecialchars($value) . "' 
+                          class='w-10 h-10 rounded-full object-cover mb-2'>
+                          </td>";
+                           } else {
+                           echo "<td class='px-5 py-4 text-gray-600'>" . 
+                           (!empty($value) 
+                            ? htmlspecialchars($value) 
+                              : "<span class='text-gray-300'>--</span>") 
+                              . "</td>";
+    }
+
+}
 
                             $user_id = $user['id'];
                             $sqlSkills = "SELECT skill FROM user_skills WHERE user_id = $user_id";

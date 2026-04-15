@@ -19,6 +19,7 @@
 
             <?php
             include 'db.php';
+            include 'auth.php';
             $id = $_GET['id'];
             $sql = "SELECT * FROM users WHERE id = $id";
             $result = $conn->query($sql);
@@ -28,7 +29,10 @@
             <h2 class="text-xl font-bold text-gray-700 mb-6">User Info</h2>
 
             <div class="space-y-4">
-
+        <div class="flex justify-center">
+        <img src="./img/<?= htmlspecialchars($user['img']) ?>" 
+         class="w-20 h-20 rounded-full object-cover mb-5">
+         </div>
                 <div class="flex items-start gap-3 p-3 rounded-xl bg-gray-50">
                     <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider w-24 pt-0.5">Name</span>
                     <span class="text-gray-700 font-medium"><?=($user['fname'] . " " . $user['lname']) ?></span>

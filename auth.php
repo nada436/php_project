@@ -6,5 +6,5 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 else{
-    echo "<p>welcome back $_SESSION['name']"
+echo "<p>welcome back " . $_SESSION['name'] . "</p>";
 }

@@ -33,6 +33,9 @@
     </div>
 
 </div>
+<?php
+ include 'auth.php';
+?>
         <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl shadow-purple-100 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left">
@@ -56,7 +59,7 @@
                     <tbody class="divide-y divide-gray-50">
                         <?php
                         include 'db.php';
-                        include 'auth.php';
+                       
 
                         $sql = "SELECT * FROM users";
                         $result = $conn->query($sql);

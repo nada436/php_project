@@ -1,13 +1,14 @@
 <?php
 include 'db.php';
-$id = $_POST['id'] ?? null;
-$fname = $_POST['fname'];
-$lname = $_POST['lname'];
-$address = $_POST['address'];
-$gender = $_POST['gender'];
-$username = $_POST['username'];
-$password = $_POST['password'];
-$department = $_POST['department'];
+
+$id         = $_POST['id'] ?? null;
+$fname      = $_POST['fname'] ?? '';
+$lname      = $_POST['lname'] ?? '';
+$address    = $_POST['address'] ?? '';
+$gender     = $_POST['gender'] ?? '';
+$username   = $_POST['username'] ?? '';
+$password   = $_POST['password'] ?? '';
+$department = $_POST['department'] ?? '';
 
 // ─── form validation ──────────────────────────────────────
 $errors = [];
@@ -50,7 +51,7 @@ elseif (strlen($username) < 3)
 elseif (!preg_match('/^[a-zA-Z0-9_]+$/', $username))
     $errors['username'] = 'Username can only contain letters, numbers and underscores.';
 
-
+// Password — required on create, optional on update
 if (!$id && empty($password)) {
     $errors['password'] = 'Password is required.';
 } elseif (!empty($password)) {
@@ -63,7 +64,6 @@ if (!$id && empty($password)) {
 }
 
 // Image validation — type and size
-$img_upload_error = false;
 if (!empty($_FILES['img']['name'])) {
     $allowed_types = ['image/jpeg', 'image/png'];
     $max_size      = 2 * 1024 * 1024; // 2 MB
@@ -71,17 +71,16 @@ if (!empty($_FILES['img']['name'])) {
     $file_size     = $_FILES['img']['size'];
 
     if (!in_array($file_type, $allowed_types)) {
-        $errors['img']   = 'Only JPG and PNG images are allowed.';
-        $img_upload_error = true;
+        $errors['img'] = 'Only JPG and PNG images are allowed.';
     } elseif ($file_size > $max_size) {
-        $errors['img']   = 'Image must be smaller than 2 MB.';
-        $img_upload_error = true;
+        $errors['img'] = 'Image must be smaller than 2 MB.';
     }
 }
 
+// ─── validation failed ────────────────────────────────────
 if (count($errors) > 0) {
     session_start();
-    $_SESSION['errors'] = $errors;
+    $_SESSION['errors']  = $errors;
     $_SESSION['userinfo'] = [
         'fname'      => $fname,
         'lname'      => $lname,
@@ -94,64 +93,82 @@ if (count($errors) > 0) {
     ];
     header("Location: register.php?id=$id&error=1");
     exit;
-} else {
-    if ($id) {
-        // get old img
-        $result  = $conn->query("SELECT img FROM users WHERE id=$id");
-        $row     = $result->fetch_assoc();
-        $old_img = $row['img'];
 
-        // check if a new image was uploaded
+// ─── no validation errors ─────────────────────────────────
+} else {
+
+    $db = DATA_BASE::getInstance();
+
+    // ── UPDATE ──────────────────────────────────────────────
+    if ($id) {
+
+        // fetch old record to get existing image
+        $result  = $db->select("users", "id=$id");
+        $row     = $result->fetch_assoc();
+        $old_img = $row['img'] ?? 'default.png';
+
+        // handle image upload
         if (!empty($_FILES['img']['name'])) {
-            // Use original filename (sanitised)
             $img = basename($_FILES['img']['name']);
-            // delete old img only if it exists
-            if ($old_img && file_exists("./img/$old_img")) {
+
+            // delete old image only if it is not the default
+            if ($old_img && $old_img !== 'default.png' && file_exists("./img/$old_img")) {
                 unlink("./img/$old_img");
             }
-            // save new img
+
             move_uploaded_file($_FILES['img']['tmp_name'], "./img/$img");
         } else {
-            // no new image uploaded — keep the old one
-            $img = $old_img;
+            // keep old image, fall back to default if none stored
+            $img = !empty($old_img) ? $old_img : 'default.png';
         }
 
-        // UPDATE user
-        $sql = "UPDATE users SET 
+        // build SET clause — keep old password if none supplied
+        $password_set = !empty($password)
+            ? "password='$password',"
+            : "password='" . $row['password'] . "',";
+
+        $set = "
             fname='$fname',
             lname='$lname',
             address='$address',
             gender='$gender',
             username='$username',
-            password='$password',
+            $password_set
             department='$department',
             img='$img'
-            WHERE id=$id";
-        $conn->query($sql);
+        ";
+
+        $db->update('users', $set, "id=$id");
         $user_id = $id;
 
-        // delete old skills
-        $conn->query("DELETE FROM user_skills WHERE user_id=$id");
+        // remove old skills before re-inserting
+        $db->delete('user_skills', "user_id=$user_id");
+
+    // ── INSERT ──────────────────────────────────────────────
     } else {
-        // new upload for create
-        $img = '';
+
+        // default image when none uploaded
+        $img = 'default.png';
+
         if (!empty($_FILES['img']['name'])) {
             $img = basename($_FILES['img']['name']);
             move_uploaded_file($_FILES['img']['tmp_name'], "./img/$img");
         }
 
-        // CREATE user
-        $sql = "INSERT INTO users (fname, lname, address, gender, username, password, department, img)
-            VALUES ('$fname','$lname','$address','$gender','$username','$password','$department','$img')";
-        $conn->query($sql);
-        $user_id = $conn->insert_id;
+        $columns = "fname,lname,address,gender,username,password,department,img";
+        $values  = "'$fname','$lname','$address','$gender','$username','$password','$department','$img'";
+        $user_id = $db->insert('users', $columns, $values);
     }
 
-    // insert new skills
+    // ── INSERT SKILLS ────────────────────────────────────────
     if (!empty($_POST['skills'])) {
         foreach ($_POST['skills'] as $skill) {
-            $conn->query("INSERT INTO user_skills (user_id, skill)
-                          VALUES ($user_id, '$skill')");
+            $skill = addslashes($skill);
+            $db->insert(
+                'user_skills',
+                "user_id,skill",
+                "$user_id,'$skill'"
+            );
         }
     }
 

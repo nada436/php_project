@@ -21,9 +21,9 @@
             include 'db.php';
             include 'auth.php';
             $id = $_GET['id'];
-            $sql = "SELECT * FROM users WHERE id = $id";
-            $result = $conn->query($sql);
-            $user = $result->fetch_assoc();
+             $db=DATA_BASE::getInstance();
+             $result  = $db->select("users","id=$id");
+             $user = $result->fetch_assoc();
             ?>
 
             <h2 class="text-xl font-bold text-gray-700 mb-6">User Info</h2>
@@ -63,8 +63,7 @@
                     <div class="flex flex-wrap gap-1">
                         <?php
                         $user_id = $user['id'];
-                        $sqlSkills = "SELECT skill FROM user_skills WHERE user_id = $user_id";
-                        $skillsResult = $conn->query($sqlSkills);
+                        $skillsResult =$db->select("user_skills","user_id=$user[id]");
                         if ($skillsResult) {
                             while ($row = $skillsResult->fetch_assoc()) {
                                 echo "<span class='inline-block bg-purple-100 text-purple-600 text-xs font-medium px-2 py-0.5 rounded-full'>" . htmlspecialchars($row['skill']) . "</span>";

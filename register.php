@@ -28,10 +28,10 @@
     $id = $_GET['id'] ?? null;
 
     if ($id) {
-        $sql = "SELECT * FROM users WHERE id = $id";
-        $result = $conn->query($sql);
+         $db = DATA_BASE::getInstance();
+        $result =$db->select("users","id=$id");
         $user = $result->fetch_assoc();
-        $result = $conn->query("SELECT skill FROM user_skills WHERE user_id=$id");
+        $result = $skillsResult =$db->select("user_skills","user_id=$user[id]");
         while ($row = $result->fetch_assoc()) {
             $skills[] = $row['skill'];
         }

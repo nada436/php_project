@@ -58,11 +58,9 @@
                     </thead>
                     <tbody class="divide-y divide-gray-50">
                         <?php
-                        include 'db.php';
-                       
-
-                        $sql = "SELECT * FROM users";
-                        $result = $conn->query($sql);
+                        require 'db.php';
+                        $db=DATA_BASE::getInstance();
+                        $result = $db->selectAll("users");
                         $users = $result->fetch_all(MYSQLI_ASSOC);
 
                         foreach ($users as $user) {
@@ -86,8 +84,7 @@
 }
 
                             $user_id = $user['id'];
-                            $sqlSkills = "SELECT skill FROM user_skills WHERE user_id = $user_id";
-                            $skillsResult = $conn->query($sqlSkills);
+                            $skillsResult = $db->selectAll("user_skills","user_id=$user[id]");
                             $skillsText = "";
                             if ($skillsResult) {
                                 while ($row = $skillsResult->fetch_assoc()) {

@@ -1,15 +1,13 @@
 <?php
 session_start();
-include 'db.php';
+require 'db.php';
 
 $email = trim($_POST['email'] ?? '');
 $password = trim($_POST['password'] ?? '');
 
-$stmt = $conn->prepare("SELECT * FROM users WHERE address = ?");
-$stmt->bind_param("s", $email);
-$stmt->execute();
 
-$result = $stmt->get_result();
+$db = DATA_BASE::getInstance();
+$result = $db->select("users","address='$email'");
 $user = $result->fetch_assoc();
 
 if ($user && $user['password'] === $password) {
